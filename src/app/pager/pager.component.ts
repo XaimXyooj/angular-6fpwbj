@@ -3,22 +3,17 @@ import {
   EventEmitter,
   Input,
   OnDestroy,
+  OnInit,
   Output
 } from "@angular/core";
-import { Observable, of } from "rxjs";
-import { map } from "rxjs/operators";
-import { GridRow } from "../models/grid-row";
-import { List } from "../models/list";
 import { PageUpdate } from "../models/page-update";
-import { MinimalRecipe } from "../models/recipe";
-import { RecipeService } from "../recipe.service";
 
 @Component({
   selector: "pager",
   templateUrl: "./pager.component.html",
   styleUrls: ["./pager.component.css"]
 })
-export class PagerComponent implements OnDestroy {
+export class PagerComponent implements OnDestroy, OnInit {
   @Input() public itemCount: number = 0;
   @Input() public page: number = 1;
   @Input() public size: number = 5;
@@ -31,6 +26,23 @@ export class PagerComponent implements OnDestroy {
 
   public ngOnDestroy(): void {
     this.update.complete();
+  }
+
+  public ngOnInit(): void {
+    // TODO Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'rows: null'. Current value: 'rows: [object Object]'
+    this.pageTo(this.page);
+  }
+
+  public hasNext(): boolean {
+    return this.page < this.pageCount();
+  }
+
+  public hasPrev(): boolean {
+    return this.page > 1;
+  }
+
+  public isCurrentPage(p: number): boolean {
+    return this.page === p;
   }
 
   public pageCount(): number {
@@ -58,6 +70,7 @@ export class PagerComponent implements OnDestroy {
   public pageTo(p: number): void {
     this.update.next({
       page: p,
+      size: this.size,
       bounds: [
         Math.max(1, (p - 1) * this.size),
         Math.min(this.itemCount, p * this.size)

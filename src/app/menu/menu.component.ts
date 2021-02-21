@@ -17,16 +17,8 @@ export class MenuComponent implements OnInit {
   constructor(private recipeService: RecipeService) {}
 
   public ngOnInit(): void {
-    this.data = this.recipeService.list().pipe(
-      map(
-        (recipes: List<MinimalRecipe>): GridRow<number>[] =>
-          recipes.values.map(
-            (recipe: MinimalRecipe): GridRow<number> => ({
-              "#": recipes.values.indexOf(recipe) + 1,
-              ...recipe
-            })
-          )
-      )
-    );
+    this.data = this.recipeService
+      .list()
+      .pipe(map((list: List<MinimalRecipe>): MinimalRecipe[] => list.values));
   }
 }
