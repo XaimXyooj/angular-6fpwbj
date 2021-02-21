@@ -1,0 +1,12 @@
+<table>
+	<tr *ngIf="showHeader">
+		<th *ngFor="let key of columns | async">
+			{{ key }}
+		</th>
+	</tr>
+	<tr *ngFor="let row of data | async">
+		<td *ngFor="let key of columns | async">
+			{{ row[data] }}
+		</td>
+	</tr>
+</table>
