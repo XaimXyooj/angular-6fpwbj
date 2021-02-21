@@ -1,0 +1,3 @@
+<button (click)="pagePrev()"><</button>
+<button *ngFor="let p of pageList()" (click)="pageTo(p)">{{ p }}</button>
+<button (click)="pageNext()">></button>
