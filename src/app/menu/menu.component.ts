@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
-import { GridRow } from "./grid/models/grid-row";
-import { List } from "./models/list";
-import { MinimalRecipe } from "./models/recipe";
+import { GridRow } from "../models/grid-row";
+import { List } from "../models/list";
+import { MinimalRecipe } from "../models/recipe";
 import { RecipeService } from "../recipe.service";
 
 @Component({
@@ -22,8 +22,8 @@ export class MenuComponent implements OnInit {
         (recipes: List<MinimalRecipe>): GridRow<number>[] =>
           recipes.values.map(
             (recipe: MinimalRecipe): GridRow<number> => ({
-              ...recipe,
-              "#": recipes.values.indexOf(recipe) + 1
+              "#": recipes.values.indexOf(recipe) + 1,
+              ...recipe
             })
           )
       )
