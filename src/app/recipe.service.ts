@@ -1,26 +1,17 @@
+import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable, of } from "rxjs";
+import { Observable } from "rxjs";
 import { List } from "./models/list";
 import { MinimalRecipe } from "./models/recipe";
 
 @Injectable()
 export class RecipeService {
-  construct() {}
+  constructor(private httpClient: HttpClient) {}
 
   public list(): Observable<List<MinimalRecipe>> {
-    return of({
-      values: [
-        {
-          id: 1,
-          name: "foo",
-          extra: "extra"
-        },
-        {
-          id: 2,
-          name: "bar",
-          extra: "data"
-        }
-      ]
+    return this.httpClient.get<List<MinimalRecipe>>("api/recipes", {
+      responseType: "json",
+      observe: "body"
     });
   }
 }

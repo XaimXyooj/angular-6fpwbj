@@ -3,7 +3,6 @@ import {
   EventEmitter,
   Input,
   OnDestroy,
-  OnInit,
   Output
 } from "@angular/core";
 import { PageUpdate } from "../models/page-update";
@@ -13,7 +12,7 @@ import { PageUpdate } from "../models/page-update";
   templateUrl: "./pager.component.html",
   styleUrls: ["./pager.component.css"]
 })
-export class PagerComponent implements OnDestroy, OnInit {
+export class PagerComponent implements OnDestroy {
   @Input() public itemCount: number = 0;
   @Input() public page: number = 1;
   @Input() public size: number = 5;
@@ -26,11 +25,6 @@ export class PagerComponent implements OnDestroy, OnInit {
 
   public ngOnDestroy(): void {
     this.update.complete();
-  }
-
-  public ngOnInit(): void {
-    // TODO Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'rows: null'. Current value: 'rows: [object Object]'
-    this.pageTo(this.page);
   }
 
   public hasNext(): boolean {
@@ -72,7 +66,7 @@ export class PagerComponent implements OnDestroy, OnInit {
       page: p,
       size: this.size,
       bounds: [
-        Math.max(1, (p - 1) * this.size),
+        Math.max(0, (p - 1) * this.size),
         Math.min(this.itemCount, p * this.size)
       ]
     });

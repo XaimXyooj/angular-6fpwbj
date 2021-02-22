@@ -1,6 +1,12 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { combineLatest, Observable, Subject } from "rxjs";
-import { distinctUntilChanged, map, shareReplay } from "rxjs/operators";
+import {
+  distinctUntilChanged,
+  map,
+  shareReplay,
+  startWith,
+  tap
+} from "rxjs/operators";
 import { GridRow } from "../models/grid-row";
 import { PageUpdate } from "../models/page-update";
 
@@ -11,14 +17,19 @@ import { PageUpdate } from "../models/page-update";
 })
 export class GridComponent<T> implements OnInit {
   public columns: Observable<string[]>;
+  public page: number;
+  public size: number;
   public pageUpdate: Subject<PageUpdate>;
   public rows: Observable<GridRow<T>[]>;
 
   @Input() public data: Observable<GridRow<T>[]>;
   @Input() public showHeader: boolean = false;
   @Input() public showNumber: boolean = false;
+  @Input() public showPager: boolean = false;
 
   constructor() {
+    this.page = 1;
+    this.size = 5;
     this.pageUpdate = new Subject<PageUpdate>();
   }
 
@@ -39,8 +50,15 @@ export class GridComponent<T> implements OnInit {
         map((rows: GridRow<T>[]): GridRow<T>[] => this.populateIndex(rows))
       ),
       this.pageUpdate.pipe(
-        map((update: PageUpdate): [number, number] => update.bounds),
-        distinctUntilChanged()
+        tap(
+          ({ page, size }: PageUpdate): void => {
+            this.page = page;
+            this.size = size;
+          }
+        ),
+        map(({ bounds }: PageUpdate): [number, number] => bounds),
+        distinctUntilChanged(),
+        startWith([(this.page - 1) * this.size, this.page * this.size])
       )
     ]).pipe(
       map(
@@ -66,7 +84,7 @@ export class GridComponent<T> implements OnInit {
       .filter((key: string): boolean => key !== "id")
       .filter(
         (key: string, index: number, array: string[]): boolean =>
-          array.indexOf(key) !== index
+          array.indexOf(key) === index
       );
 
     if (this.showNumber) {

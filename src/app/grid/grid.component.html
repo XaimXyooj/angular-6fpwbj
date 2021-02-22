@@ -1,4 +1,4 @@
-<ng-container *ngTemplateOutlet="grid; context:{ rows: rows | async , keys: columns | async }"></ng-container>
+<ng-container *ngTemplateOutlet="grid; context:{ rows: rows | async, keys: columns | async }"></ng-container>
 <ng-container *ngTemplateOutlet="pagination; context:{ items: data | async }"></ng-container>
 
 <ng-template #grid let-keys="keys" let-rows="rows">
@@ -15,6 +15,7 @@
 		</tr>
 	</table>
 </ng-template>
+<!-- TODO ERROR Error: _v.parent.context.items is null -->
 <ng-template #pagination let-count="items.length">
-	<pager [itemCount]="count" (update)="pageUpdated($event)"></pager>
+	<pager *ngIf="showPager" [itemCount]="count" [page]="page" [size]="size" (update)="pageUpdated($event)"></pager>
 </ng-template>
