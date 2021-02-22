@@ -15,7 +15,7 @@
 		</tr>
 	</table>
 </ng-template>
-<!-- TODO ERROR Error: _v.parent.context.items is null -->
-<ng-template #pagination let-count="items.length">
-	<pager *ngIf="showPager" [itemCount]="count" [page]="page" [size]="size" (update)="pageUpdated($event)"></pager>
+
+<ng-template #pagination let-count="items?.length">
+	<pager *ngIf="showPager" [itemCount]="count" [page]="p" [size]="s" (update)="pageUpdated($event)"></pager>
 </ng-template>

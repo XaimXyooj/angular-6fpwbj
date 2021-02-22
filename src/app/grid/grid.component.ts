@@ -17,19 +17,21 @@ import { PageUpdate } from "../models/page-update";
 })
 export class GridComponent<T> implements OnInit {
   public columns: Observable<string[]>;
-  public page: number;
-  public size: number;
+  public p: number;
+  public s: number;
   public pageUpdate: Subject<PageUpdate>;
   public rows: Observable<GridRow<T>[]>;
 
   @Input() public data: Observable<GridRow<T>[]>;
+  @Input() public page: number = 1;
+  @Input() public pageSize: number = 5;
   @Input() public showHeader: boolean = false;
   @Input() public showNumber: boolean = false;
   @Input() public showPager: boolean = false;
 
   constructor() {
-    this.page = 1;
-    this.size = 5;
+    this.p = this.page;
+    this.s = this.pageSize;
     this.pageUpdate = new Subject<PageUpdate>();
   }
 
@@ -52,13 +54,13 @@ export class GridComponent<T> implements OnInit {
       this.pageUpdate.pipe(
         tap(
           ({ page, size }: PageUpdate): void => {
-            this.page = page;
-            this.size = size;
+            this.p = page;
+            this.s = size;
           }
         ),
         map(({ bounds }: PageUpdate): [number, number] => bounds),
         distinctUntilChanged(),
-        startWith([(this.page - 1) * this.size, this.page * this.size])
+        startWith([(this.p - 1) * this.s, this.p * this.s])
       )
     ]).pipe(
       map(
