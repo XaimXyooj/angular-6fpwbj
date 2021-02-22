@@ -1,7 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
-import { GridRow } from "../models/grid-row";
 import { List } from "../models/list";
 import { MinimalRecipe } from "../models/recipe";
 import { RecipeService } from "../recipe.service";
@@ -12,7 +11,7 @@ import { RecipeService } from "../recipe.service";
   styleUrls: ["./menu.component.css"]
 })
 export class MenuComponent implements OnInit {
-  @Input() public data: Observable<GridRow<number>[]>;
+  @Input() public data: Observable<MinimalRecipe[]>;
 
   constructor(private recipeService: RecipeService) {}
 

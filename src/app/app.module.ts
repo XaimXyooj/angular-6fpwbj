@@ -5,10 +5,8 @@ import { FormsModule } from "@angular/forms";
 import { HttpClientInMemoryWebApiModule } from "angular-in-memory-web-api";
 
 import { AppComponent } from "./app.component";
-import { GridComponent } from "./grid/grid.component";
 import { MenuComponent } from "./menu/menu.component";
 import { RecipeService } from "./recipe.service";
-import { PagerComponent } from "./pager/pager.component";
 import { InMemoryDataService } from "./in-memory-data.service";
 import { HttpClientModule } from "@angular/common/http";
 
@@ -21,7 +19,7 @@ import { HttpClientModule } from "@angular/common/http";
     }),
     HttpClientModule
   ],
-  declarations: [AppComponent, GridComponent, MenuComponent, PagerComponent],
+  declarations: [AppComponent, MenuComponent],
   providers: [RecipeService],
   bootstrap: [AppComponent]
 })

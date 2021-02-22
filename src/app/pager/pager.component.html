@@ -1,3 +1,0 @@
-<button (click)="pagePrev()" [disabled]="!hasPrev()"><</button>
-<button *ngFor="let p of pageList()" (click)="pageTo(p)" [disabled]="isCurrentPage(p)">{{ p }}</button>
-<button (click)="pageNext()" [disabled]="!hasNext()">></button>
