@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewChild } from "@angular/core";
-import { ColDef } from "ag-grid";
 import { AgGridAngular } from "ag-grid-angular";
+import { ColDef, GridOptions } from "ag-grid-community";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { List } from "../models/list";
@@ -30,5 +30,9 @@ export class MenuComponent implements OnInit {
     this.data = this.recipeService
       .list()
       .pipe(map((list: List<MinimalRecipe>): MinimalRecipe[] => list.values));
+  }
+
+  public onGridReady(options: GridOptions): void {
+    options.api.sizeColumnsToFit();
   }
 }

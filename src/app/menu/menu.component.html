@@ -1,1 +1,2 @@
-<ag-grid-angular #agGrid [rowData]="data | async" [columnDefs]="colDefs"></ag-grid-angular>
+<ag-grid-angular #agGrid class="ag-theme-alpine" [rowData]="data | async" [columnDefs]="colDefs"
+	(gridReady)="onGridReady($event)"></ag-grid-angular>
