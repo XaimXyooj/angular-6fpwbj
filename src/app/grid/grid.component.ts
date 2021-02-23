@@ -1,4 +1,11 @@
-import { Component, Input, OnInit } from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from "@angular/core";
 import { combineLatest, Observable, Subject } from "rxjs";
 import {
   distinctUntilChanged,
@@ -15,10 +22,10 @@ import { PageUpdate } from "../models/page-update";
   templateUrl: "./grid.component.html",
   styleUrls: ["./grid.component.css"]
 })
-export class GridComponent<T> implements OnInit {
+export class GridComponent<T> implements OnDestroy, OnInit {
   public columns: Observable<string[]>;
-  public p: number;
-  public s: number;
+  public currentPage: number;
+  public itemsPerPage: number;
   public pageUpdate: Subject<PageUpdate>;
   public rows: Observable<GridRow<T>[]>;
 
@@ -29,10 +36,18 @@ export class GridComponent<T> implements OnInit {
   @Input() public showNumber: boolean = false;
   @Input() public showPager: boolean = false;
 
+  // TODO - multi select?
+  @Output() public select: EventEmitter<T>;
+
   constructor() {
-    this.p = this.page;
-    this.s = this.pageSize;
+    this.currentPage = this.page;
+    this.itemsPerPage = this.pageSize;
     this.pageUpdate = new Subject<PageUpdate>();
+    this.select = new EventEmitter<T>();
+  }
+
+  public ngOnDestroy(): void {
+    this.select.complete();
   }
 
   public ngOnInit(): void {
@@ -54,13 +69,16 @@ export class GridComponent<T> implements OnInit {
       this.pageUpdate.pipe(
         tap(
           ({ page, size }: PageUpdate): void => {
-            this.p = page;
-            this.s = size;
+            this.currentPage = page;
+            this.itemsPerPage = size;
           }
         ),
         map(({ bounds }: PageUpdate): [number, number] => bounds),
         distinctUntilChanged(),
-        startWith([(this.p - 1) * this.s, this.p * this.s])
+        startWith([
+          (this.currentPage - 1) * this.itemsPerPage,
+          this.currentPage * this.itemsPerPage
+        ])
       )
     ]).pipe(
       map(
@@ -73,6 +91,10 @@ export class GridComponent<T> implements OnInit {
 
   public pageUpdated(update: PageUpdate): void {
     this.pageUpdate.next(update);
+  }
+
+  public selectRow({ id }: GridRow<T>): void {
+    this.select.next(id);
   }
 
   private buildColumnKeys(rows: any[], prependIndex: boolean): string[] {

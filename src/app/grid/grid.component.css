@@ -1,0 +1,7 @@
+td {
+  min-width: 100px;
+}
+
+td.row-num {
+  min-width: 20px;
+}

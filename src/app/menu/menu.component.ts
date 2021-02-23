@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from "@angular/core";
-import { Observable, of } from "rxjs";
+import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { GridRow } from "../models/grid-row";
 import { List } from "../models/list";
@@ -20,5 +20,10 @@ export class MenuComponent implements OnInit {
     this.data = this.recipeService
       .list()
       .pipe(map((list: List<MinimalRecipe>): MinimalRecipe[] => list.values));
+  }
+
+  public onSelect(id: number): void {
+    // TODO - bubble up the selection
+    console.log(id);
   }
 }

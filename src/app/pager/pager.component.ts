@@ -17,11 +17,11 @@ export class PagerComponent implements OnDestroy {
   @Input() public page: number = 1;
   @Input() public size: number = 5;
 
-  @Output() public update: EventEmitter<PageUpdate> = new EventEmitter<
-    PageUpdate
-  >();
+  @Output() public update: EventEmitter<PageUpdate>;
 
-  constructor() {}
+  constructor() {
+    this.update = new EventEmitter<PageUpdate>();
+  }
 
   public ngOnDestroy(): void {
     this.update.complete();

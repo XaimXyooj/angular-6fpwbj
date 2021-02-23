@@ -2,20 +2,23 @@
 <ng-container *ngTemplateOutlet="pagination; context:{ items: data | async }"></ng-container>
 
 <ng-template #grid let-keys="keys" let-rows="rows">
-	<table>
-		<tr *ngIf="showHeader">
-			<th *ngFor="let key of keys">
-				{{ key }}
-			</th>
-		</tr>
-		<tr *ngFor="let row of rows">
-			<td *ngFor="let key of keys">
-				{{ row[key] }}
-			</td>
-		</tr>
-	</table>
+	<section [ngStyle]="{ 'min-height': itemsPerPage * 25 + 'px' }">
+		<table>
+			<tr *ngIf="showHeader">
+				<th *ngFor="let key of keys">
+					{{ key }}
+				</th>
+			</tr>
+			<tr *ngFor="let row of rows" (click)="selectRow(row)">
+				<td *ngFor="let key of keys; index as i" [ngClass]="{ 'row-num': showNumber && i === 0 }">
+					{{ row[key] }}
+				</td>
+			</tr>
+		</table>
+	</section>
 </ng-template>
 
 <ng-template #pagination let-count="items?.length">
-	<pager *ngIf="showPager" [itemCount]="count" [page]="p" [size]="s" (update)="pageUpdated($event)"></pager>
+	<pager *ngIf="showPager" [itemCount]="count" [page]="currentPage" [size]="itemsPerPage"
+		(update)="pageUpdated($event)"></pager>
 </ng-template>
