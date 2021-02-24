@@ -2,6 +2,14 @@ td {
   min-width: 100px;
 }
 
-td.row-num {
+td.narrow {
+  min-width: 20px;
+}
+
+th {
+  min-width: 100px;
+}
+
+th.narrow {
   min-width: 20px;
 }

@@ -6,6 +6,7 @@ import {
   OnInit,
   Output
 } from "@angular/core";
+import { AbstractControl, FormControl, FormGroup } from "@angular/forms";
 import { combineLatest, Observable, Subject } from "rxjs";
 import {
   distinctUntilChanged,
@@ -17,37 +18,54 @@ import {
 import { GridRow } from "../models/grid-row";
 import { PageUpdate } from "../models/page-update";
 
+export enum SelectMode {
+  NONE,
+  SINGLE,
+  MULTI
+}
+
 @Component({
   selector: "grid",
   templateUrl: "./grid.component.html",
   styleUrls: ["./grid.component.css"]
 })
 export class GridComponent<T> implements OnDestroy, OnInit {
+  public readonly SELECT_MODE = SelectMode;
+
+  private pageUpdate: Subject<PageUpdate>;
+  private teardown: Subject<any>;
+
   public columns: Observable<string[]>;
   public currentPage: number;
   public itemsPerPage: number;
-  public pageUpdate: Subject<PageUpdate>;
   public rows: Observable<GridRow<T>[]>;
+  public rowSelectForm: FormGroup;
 
   @Input() public data: Observable<GridRow<T>[]>;
   @Input() public page: number = 1;
   @Input() public pageSize: number = 5;
+  @Input() public select: SelectMode = SelectMode.MULTI;
   @Input() public showHeader: boolean = false;
   @Input() public showNumber: boolean = false;
   @Input() public showPager: boolean = false;
 
-  // TODO - multi select?
-  @Output() public select: EventEmitter<T>;
+  @Output() public selections: EventEmitter<T | T[]>;
 
   constructor() {
     this.currentPage = this.page;
     this.itemsPerPage = this.pageSize;
     this.pageUpdate = new Subject<PageUpdate>();
-    this.select = new EventEmitter<T>();
+    this.rowSelectForm = new FormGroup({
+      headerSelect: new FormControl(false)
+    });
+    this.teardown = new Subject<any>();
   }
 
   public ngOnDestroy(): void {
-    this.select.complete();
+    this.pageUpdate.complete();
+    this.selections.complete();
+    this.teardown.next();
+    this.teardown.complete();
   }
 
   public ngOnInit(): void {
@@ -64,6 +82,37 @@ export class GridComponent<T> implements OnDestroy, OnInit {
     );
     this.rows = combineLatest([
       sharedData.pipe(
+        tap(
+          (rows: GridRow<T>[]): void => {
+            const rowKeys: string[] = rows.map(
+              (row: GridRow<T>): string => `${row.id}`
+            );
+
+            Object.keys(this.rowSelectForm.controls)
+              .filter(
+                (controlName: string): boolean => controlName !== "headerSelect"
+              )
+              .filter(
+                (controlName: string): boolean => !rowKeys.includes(controlName)
+              )
+              .forEach(
+                (controlName: string): void =>
+                  this.rowSelectForm.removeControl(controlName)
+              );
+
+            rowKeys.forEach(
+              (rowKey: string): void => {
+                const control: AbstractControl = this.rowSelectForm.controls[
+                  rowKey
+                ];
+
+                if (!control) {
+                  this.rowSelectForm.addControl(rowKey, new FormControl(false));
+                }
+              }
+            );
+          }
+        ),
         map((rows: GridRow<T>[]): GridRow<T>[] => this.populateIndex(rows))
       ),
       this.pageUpdate.pipe(
@@ -87,14 +136,15 @@ export class GridComponent<T> implements OnDestroy, OnInit {
         >[] => rows.slice(start, end)
       )
     );
+    this.selections = undefined;
+    this.rowSelectForm.valueChanges
+      .pipe
+      // TODO apply headerSelect and then exclude it from selected
+      ();
   }
 
   public pageUpdated(update: PageUpdate): void {
     this.pageUpdate.next(update);
-  }
-
-  public selectRow({ id }: GridRow<T>): void {
-    this.select.next(id);
   }
 
   private buildColumnKeys(rows: any[], prependIndex: boolean): string[] {

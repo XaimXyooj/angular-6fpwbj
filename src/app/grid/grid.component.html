@@ -2,20 +2,30 @@
 <ng-container *ngTemplateOutlet="pagination; context:{ items: data | async }"></ng-container>
 
 <ng-template #grid let-keys="keys" let-rows="rows">
-	<section [ngStyle]="{ 'min-height': itemsPerPage * 25 + 'px' }">
+	<form [ngStyle]="{ 'min-height': itemsPerPage * 25 + 'px' }" [formGroup]="rowSelectForm">
 		<table>
 			<tr *ngIf="showHeader">
-				<th *ngFor="let key of keys">
+				<th *ngIf="select !== SELECT_MODE.NONE" class="narrow">
+					<input *ngIf="select === SELECT_MODE.MULTI" type="checkbox" formControlName="headerSelect">
+					<input *ngIf="select === SELECT_MODE.SINGLE" type="radio" formControlName="headerSelect">
+        </th>
+				<th *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
 					{{ key }}
 				</th>
 			</tr>
-			<tr *ngFor="let row of rows" (click)="selectRow(row)">
-				<td *ngFor="let key of keys; index as i" [ngClass]="{ 'row-num': showNumber && i === 0 }">
-					{{ row[key] }}
+			<tr *ngFor="let row of rows">
+				<td *ngIf="select !== SELECT_MODE.NONE" class="narrow">
+					<input *ngIf="select === SELECT_MODE.MULTI" [id]="row.id" type="checkbox" [formControlName]="row.id">
+					<input *ngIf="select === SELECT_MODE.SINGLE" [id]="row.id" type="radio" [formControlName]="row.id">
+        </td>
+				<td *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
+					<label [for]="row.id">
+            {{ row[key] }}
+					</label>
 				</td>
 			</tr>
 		</table>
-	</section>
+	</form>
 </ng-template>
 
 <ng-template #pagination let-count="items?.length">
