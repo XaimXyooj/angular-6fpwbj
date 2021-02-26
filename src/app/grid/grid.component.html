@@ -3,23 +3,22 @@
 
 <ng-template #grid let-keys="keys" let-rows="rows">
 	<form [ngStyle]="{ 'min-height': itemsPerPage * 25 + 'px' }" [formGroup]="rowSelectForm">
-		<table>
+		<table formArrayName="checkboxes">
 			<tr *ngIf="showHeader">
 				<th *ngIf="select !== SELECT_MODE.NONE" class="narrow">
-					<input *ngIf="select === SELECT_MODE.MULTI" type="checkbox" formControlName="headerSelect">
-					<input *ngIf="select === SELECT_MODE.SINGLE" type="radio" formControlName="headerSelect">
+					<input [attr.type]="selectorType()" formControlName="0">
         </th>
 				<th *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
 					{{ key }}
 				</th>
 			</tr>
-			<tr *ngFor="let row of rows">
+			<tr *ngFor="let row of rows; index as i">
 				<td *ngIf="select !== SELECT_MODE.NONE" class="narrow">
-					<input *ngIf="select === SELECT_MODE.MULTI" [id]="row.id" type="checkbox" [formControlName]="row.id">
-					<input *ngIf="select === SELECT_MODE.SINGLE" [id]="row.id" type="radio" [formControlName]="row.id">
+					<!-- TODO find fix for binding "type" causing control value to become string instead of boolean -->
+					<input [id]="i" [attr.type]="selectorType()" [formControlName]="(currentPage - 1) * pageSize + i + 1">
         </td>
 				<td *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
-					<label [for]="row.id">
+					<label [for]="i">
             {{ row[key] }}
 					</label>
 				</td>
