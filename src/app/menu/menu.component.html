@@ -1,2 +1,3 @@
 <h1>Recipes</h1>
-<grid [data]="data" [showNumber]="true" [showPager]="true" (select)="onSelect($event)"></grid>
+<grid [data]="data" [showNumber]="true" [showPager]="true" [showHeader]="true" selectMode="MULTI"
+	(selections)="onSelect($event)"></grid>

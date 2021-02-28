@@ -5,18 +5,18 @@
 	<form [ngStyle]="{ 'min-height': itemsPerPage * 25 + 'px' }" [formGroup]="rowSelectForm">
 		<table formArrayName="checkboxes">
 			<tr *ngIf="showHeader">
-				<th *ngIf="select !== SELECT_MODE.NONE" class="narrow">
-					<input *ngIf="select === SELECT_MODE.MULTI" type="checkbox" formControlName="0">
-					<input *ngIf="select === SELECT_MODE.SINGLE" type="radio" formControlName="0">
+				<th *ngIf="selectMode !== 'NONE'" class="narrow">
+					<input *ngIf="selectMode === 'MULTI'" type="checkbox" [formControlName]="0">
+					<input *ngIf="selectMode === 'SINGLE'" type="radio" [formControlName]="0" [value]="undefined">
         </th>
 				<th *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
 					{{ key }}
 				</th>
 			</tr>
 			<tr *ngFor="let row of rows; index as i">
-				<td *ngIf="select !== SELECT_MODE.NONE" class="narrow">
-					<input *ngIf="select === SELECT_MODE.MULTI" [id]="i" type="checkbox"  [formControlName]="(currentPage - 1) * pageSize + i + 1">
-					<input *ngIf="select === SELECT_MODE.SINGLE" [id]="i" type="radio"  [formControlName]="(currentPage - 1) * pageSize + i + 1">
+				<td *ngIf="selectMode !== 'NONE'" class="narrow">
+					<input *ngIf="selectMode === 'MULTI'" [id]="i" type="checkbox"  [formControlName]="(currentPage - 1) * pageSize + i + 1">
+					<input *ngIf="selectMode === 'SINGLE'" [id]="i" type="radio"  [formControlName]="0" [value]="row.id">
         </td>
 				<td *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
 					<label [for]="i">

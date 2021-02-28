@@ -22,8 +22,8 @@ export class MenuComponent implements OnInit {
       .pipe(map((list: List<MinimalRecipe>): MinimalRecipe[] => list.values));
   }
 
-  public onSelect(id: number): void {
+  public onSelect(selectedIds: number | number[]): void {
     // TODO - bubble up the selection
-    console.log(id);
+    console.log(selectedIds);
   }
 }

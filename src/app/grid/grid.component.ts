@@ -7,13 +7,14 @@ import {
   Output
 } from "@angular/core";
 import { FormArray, FormControl, FormGroup } from "@angular/forms";
-import { combineLatest, Observable, Subject } from "rxjs";
+import { combineLatest, merge, Observable, Subject } from "rxjs";
 import {
   distinctUntilChanged,
   filter,
   map,
   pairwise,
   shareReplay,
+  skip,
   startWith,
   takeUntil,
   tap,
@@ -22,11 +23,7 @@ import {
 import { GridRow } from "../models/grid-row";
 import { PageUpdate } from "../models/page-update";
 
-export enum SelectMode {
-  NONE,
-  SINGLE,
-  MULTI
-}
+export type SelectMode = "SINGLE" | "MULTI" | "NONE";
 
 @Component({
   selector: "grid",
@@ -34,8 +31,6 @@ export enum SelectMode {
   styleUrls: ["./grid.component.css"]
 })
 export class GridComponent<T> implements OnDestroy, OnInit {
-  public readonly SELECT_MODE = SelectMode;
-
   private checkboxesReady: boolean;
   private pageUpdate: Subject<PageUpdate>;
   private teardown: Subject<any>;
@@ -49,7 +44,7 @@ export class GridComponent<T> implements OnDestroy, OnInit {
   @Input() public data: Observable<GridRow<T>[]>;
   @Input() public page: number = 1;
   @Input() public pageSize: number = 5;
-  @Input() public select: SelectMode = SelectMode.MULTI;
+  @Input() public selectMode: SelectMode = "MULTI";
   @Input() public showHeader: boolean = false;
   @Input() public showNumber: boolean = false;
   @Input() public showPager: boolean = false;
@@ -85,76 +80,92 @@ export class GridComponent<T> implements OnDestroy, OnInit {
       distinctUntilChanged(),
       shareReplay(1)
     );
-    const selectedIds = this.checkboxes.valueChanges.pipe(
+    const sharedCheckboxValues: Observable<
+      T[] | boolean[]
+    > = this.checkboxes.valueChanges.pipe(
       takeUntil(this.teardown),
-      filter((): boolean => this.checkboxesReady),
-      withLatestFrom(
-        sharedData.pipe(
-          map(
-            (rows: GridRow<T>[]): T[] => rows.map(({ id }: GridRow<T>): T => id)
-          )
-        )
+      shareReplay(1)
+    );
+    // TODO exclude the header select
+    // TODO handle select all/some?/none
+    // TODO update header select on data/filter change such that not all is selected
+    const selectedIds: Observable<T[]> = merge(
+      sharedCheckboxValues.pipe(
+        filter((): boolean => this.selectMode === "SINGLE")
       ),
-      map(
-        ([allCheckboxes, ids]: [boolean[], T[]]): T[] =>
-          allCheckboxes
-            .map(
-              (checked: boolean, index: number): T =>
-                checked ? ids[index - 1] : undefined
+      sharedCheckboxValues.pipe(
+        filter((): boolean => this.selectMode === "MULTI"),
+        filter((): boolean => this.checkboxesReady),
+        withLatestFrom(
+          sharedData.pipe(
+            map(
+              (rows: GridRow<T>[]): T[] =>
+                rows.map(({ id }: GridRow<T>): T => id)
             )
-            .filter((id: T): boolean => !!id)
-      ),
+          )
+        ),
+        map(
+          ([allCheckboxes, ids]: [boolean[], T[]]): T[] =>
+            allCheckboxes
+              .map(
+                (checked: boolean, index: number): T =>
+                  checked ? ids[index - 1] : undefined
+              )
+              .filter((id: T): boolean => !!id)
+        )
+      )
+    ).pipe(
       startWith([]),
-      distinctUntilChanged(),
+      distinctUntilChanged(
+        (prev: T[], curr: T[]): boolean =>
+          !prev.some((id: T): boolean => !curr.includes(id)) &&
+          !curr.some((id: T): boolean => !prev.includes(id))
+      ),
       shareReplay(1)
     );
 
     selectedIds
       .pipe(
-        pairwise(),
+        skip(1),
         map(
-          ([prev, current]: [T[], T[]]): T | T[] => {
-            if (this.select === SelectMode.SINGLE) {
-              if (!current.length) {
-                return undefined;
-              }
-
-              if (current.length === 1) {
-                return current[0];
-              }
-
-              // TODO de-select previous selection
-
-              return current.filter((c: T): boolean => !prev.includes(c))[0];
+          (ids: T[]): T | T[] => {
+            if (this.selectMode === "SINGLE") {
+              return ids[0];
             }
 
-            return current;
+            return ids;
           }
-        ),
-        distinctUntilChanged()
+        )
       )
       .subscribe((selections: T | T[]): void => {
         this.selections.emit(selections);
       }, console.error);
 
-    sharedData.pipe(withLatestFrom(selectedIds.pipe(startWith([])))).subscribe(
-      ([rows, ids]: [GridRow<T>[], T[]]): void => {
-        this.checkboxesReady = false;
+    sharedData
+      .pipe(
+        filter((): boolean => this.selectMode === "MULTI"),
+        withLatestFrom(selectedIds)
+      )
+      .subscribe(
+        ([rows, preSelectedIds]: [GridRow<T>[], T[]]): void => {
+          this.checkboxesReady = false;
 
-        while (this.checkboxes.controls.length > 1) {
-          this.checkboxes.removeAt(1);
+          while (this.checkboxes.controls.length > 1) {
+            this.checkboxes.removeAt(1);
+          }
+
+          rows
+            .map(({ id }: GridRow<T>): T => id)
+            .forEach(
+              (id: T): void =>
+                this.checkboxes.push(
+                  new FormControl(preSelectedIds.includes(id))
+                )
+            );
+
+          this.checkboxesReady = true;
         }
-
-        rows
-          .map(({ id }: GridRow<T>): T => id)
-          .forEach(
-            (id: T): void =>
-              this.checkboxes.push(new FormControl(ids.includes(id)))
-          );
-
-        this.checkboxesReady = true;
-      }
-    );
+      );
 
     this.columns = sharedData.pipe(
       map(
