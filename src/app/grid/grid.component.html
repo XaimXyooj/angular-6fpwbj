@@ -6,7 +6,8 @@
 		<table formArrayName="checkboxes">
 			<tr *ngIf="showHeader">
 				<th *ngIf="select !== SELECT_MODE.NONE" class="narrow">
-					<input [attr.type]="selectorType()" formControlName="0">
+					<input *ngIf="select === SELECT_MODE.MULTI" type="checkbox" formControlName="0">
+					<input *ngIf="select === SELECT_MODE.SINGLE" type="radio" formControlName="0">
         </th>
 				<th *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
 					{{ key }}
@@ -14,8 +15,8 @@
 			</tr>
 			<tr *ngFor="let row of rows; index as i">
 				<td *ngIf="select !== SELECT_MODE.NONE" class="narrow">
-					<!-- TODO find fix for binding "type" causing control value to become string instead of boolean -->
-					<input [id]="i" [attr.type]="selectorType()" [formControlName]="(currentPage - 1) * pageSize + i + 1">
+					<input *ngIf="select === SELECT_MODE.MULTI" [id]="i" type="checkbox"  [formControlName]="(currentPage - 1) * pageSize + i + 1">
+					<input *ngIf="select === SELECT_MODE.SINGLE" [id]="i" type="radio"  [formControlName]="(currentPage - 1) * pageSize + i + 1">
         </td>
 				<td *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
 					<label [for]="i">

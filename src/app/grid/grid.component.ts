@@ -6,21 +6,18 @@ import {
   OnInit,
   Output
 } from "@angular/core";
-import {
-  AbstractControl,
-  FormArray,
-  FormControl,
-  FormGroup
-} from "@angular/forms";
-import { BehaviorSubject, combineLatest, Observable, Subject } from "rxjs";
+import { FormArray, FormControl, FormGroup } from "@angular/forms";
+import { combineLatest, Observable, Subject } from "rxjs";
 import {
   distinctUntilChanged,
   filter,
   map,
+  pairwise,
   shareReplay,
   startWith,
   takeUntil,
-  tap
+  tap,
+  withLatestFrom
 } from "rxjs/operators";
 import { GridRow } from "../models/grid-row";
 import { PageUpdate } from "../models/page-update";
@@ -41,7 +38,6 @@ export class GridComponent<T> implements OnDestroy, OnInit {
 
   private checkboxesReady: boolean;
   private pageUpdate: Subject<PageUpdate>;
-  private selectedIds: BehaviorSubject<T[]>;
   private teardown: Subject<any>;
 
   public columns: Observable<string[]>;
@@ -72,7 +68,6 @@ export class GridComponent<T> implements OnDestroy, OnInit {
     this.rowSelectForm = new FormGroup({
       checkboxes: new FormArray([new FormControl(false)])
     });
-    this.selectedIds = new BehaviorSubject<T[]>([]);
     this.selections = new EventEmitter<T | T[]>();
     this.teardown = new Subject<any>();
   }
@@ -86,28 +81,79 @@ export class GridComponent<T> implements OnDestroy, OnInit {
 
   public ngOnInit(): void {
     const sharedData: Observable<GridRow<T>[]> = this.data.pipe(
+      takeUntil(this.teardown),
       distinctUntilChanged(),
-      tap(
-        (rows: GridRow<T>[]): void => {
-          this.checkboxesReady = false;
-
-          while (this.checkboxes.controls.length > 1) {
-            this.checkboxes.removeAt(1);
-          }
-
-          rows
-            .map(({ id }: GridRow<T>): T => id)
-            .forEach(
-              (id: T): void =>
-                this.checkboxes.push(
-                  new FormControl(this.selectedIds.value.includes(id))
-                )
-            );
-
-          this.checkboxesReady = true;
-        }
-      ),
       shareReplay(1)
+    );
+    const selectedIds = this.checkboxes.valueChanges.pipe(
+      takeUntil(this.teardown),
+      filter((): boolean => this.checkboxesReady),
+      withLatestFrom(
+        sharedData.pipe(
+          map(
+            (rows: GridRow<T>[]): T[] => rows.map(({ id }: GridRow<T>): T => id)
+          )
+        )
+      ),
+      map(
+        ([allCheckboxes, ids]: [boolean[], T[]]): T[] =>
+          allCheckboxes
+            .map(
+              (checked: boolean, index: number): T =>
+                checked ? ids[index - 1] : undefined
+            )
+            .filter((id: T): boolean => !!id)
+      ),
+      startWith([]),
+      distinctUntilChanged(),
+      shareReplay(1)
+    );
+
+    selectedIds
+      .pipe(
+        pairwise(),
+        map(
+          ([prev, current]: [T[], T[]]): T | T[] => {
+            if (this.select === SelectMode.SINGLE) {
+              if (!current.length) {
+                return undefined;
+              }
+
+              if (current.length === 1) {
+                return current[0];
+              }
+
+              // TODO de-select previous selection
+
+              return current.filter((c: T): boolean => !prev.includes(c))[0];
+            }
+
+            return current;
+          }
+        ),
+        distinctUntilChanged()
+      )
+      .subscribe((selections: T | T[]): void => {
+        this.selections.emit(selections);
+      }, console.error);
+
+    sharedData.pipe(withLatestFrom(selectedIds.pipe(startWith([])))).subscribe(
+      ([rows, ids]: [GridRow<T>[], T[]]): void => {
+        this.checkboxesReady = false;
+
+        while (this.checkboxes.controls.length > 1) {
+          this.checkboxes.removeAt(1);
+        }
+
+        rows
+          .map(({ id }: GridRow<T>): T => id)
+          .forEach(
+            (id: T): void =>
+              this.checkboxes.push(new FormControl(ids.includes(id)))
+          );
+
+        this.checkboxesReady = true;
+      }
     );
 
     this.columns = sharedData.pipe(
@@ -141,28 +187,10 @@ export class GridComponent<T> implements OnDestroy, OnInit {
         >[] => rows.slice(start, end)
       )
     );
-    // TODO emit selections based on selectedIds and selectMode
-    this.checkboxes.valueChanges
-      .pipe(
-        takeUntil(this.teardown),
-        filter((): boolean => this.checkboxesReady)
-        // TODO map the selecteds to the row id, based on index
-        // map(({ checkboxes }: { checkboxes: boolean[] }): T[] => [])
-      )
-      .subscribe(console.log, console.error);
   }
 
   public pageUpdated(update: PageUpdate): void {
     this.pageUpdate.next(update);
-  }
-
-  public selectorType(): "checkbox" | "radio" {
-    switch (this.select) {
-      case SelectMode.SINGLE:
-        return "radio";
-      default:
-        return "checkbox";
-    }
   }
 
   private buildColumnKeys(rows: any[], prependIndex: boolean): string[] {
@@ -179,7 +207,7 @@ export class GridComponent<T> implements OnDestroy, OnInit {
           array.indexOf(key) === index
       );
 
-    if (this.showNumber) {
+    if (prependIndex) {
       keys.unshift("#");
     }
 
