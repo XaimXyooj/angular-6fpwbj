@@ -31,7 +31,7 @@ export type SelectMode = "SINGLE" | "MULTI" | "NONE";
   styleUrls: ["./grid.component.css"]
 })
 export class GridComponent<T> implements OnDestroy, OnInit {
-  private checkboxesReady: boolean;
+  public checkboxesReady: boolean;
   private pageUpdate: Subject<PageUpdate>;
   private teardown: Subject<any>;
 
@@ -61,7 +61,7 @@ export class GridComponent<T> implements OnDestroy, OnInit {
     this.itemsPerPage = this.pageSize;
     this.pageUpdate = new Subject<PageUpdate>();
     this.rowSelectForm = new FormGroup({
-      checkboxes: new FormArray([new FormControl(false)])
+      checkboxes: new FormArray([])
     });
     this.selections = new EventEmitter<T | T[]>();
     this.teardown = new Subject<any>();
@@ -84,18 +84,15 @@ export class GridComponent<T> implements OnDestroy, OnInit {
       T[] | boolean[]
     > = this.checkboxes.valueChanges.pipe(
       takeUntil(this.teardown),
+      filter((): boolean => this.checkboxesReady),
       shareReplay(1)
     );
-    // TODO exclude the header select
-    // TODO handle select all/some?/none
-    // TODO update header select on data/filter change such that not all is selected
     const selectedIds: Observable<T[]> = merge(
       sharedCheckboxValues.pipe(
         filter((): boolean => this.selectMode === "SINGLE")
       ),
       sharedCheckboxValues.pipe(
         filter((): boolean => this.selectMode === "MULTI"),
-        filter((): boolean => this.checkboxesReady),
         withLatestFrom(
           sharedData.pipe(
             map(
@@ -109,7 +106,7 @@ export class GridComponent<T> implements OnDestroy, OnInit {
             allCheckboxes
               .map(
                 (checked: boolean, index: number): T =>
-                  checked ? ids[index - 1] : undefined
+                  checked ? ids[index] : undefined
               )
               .filter((id: T): boolean => !!id)
         )
@@ -141,19 +138,15 @@ export class GridComponent<T> implements OnDestroy, OnInit {
         this.selections.emit(selections);
       }, console.error);
 
-    sharedData
-      .pipe(
-        filter((): boolean => this.selectMode === "MULTI"),
-        withLatestFrom(selectedIds)
-      )
-      .subscribe(
-        ([rows, preSelectedIds]: [GridRow<T>[], T[]]): void => {
-          this.checkboxesReady = false;
+    sharedData.pipe(withLatestFrom(selectedIds)).subscribe(
+      ([rows, preSelectedIds]: [GridRow<T>[], T[]]): void => {
+        this.checkboxesReady = false;
 
-          while (this.checkboxes.controls.length > 1) {
-            this.checkboxes.removeAt(1);
-          }
+        this.checkboxes.clear();
 
+        if (this.selectMode === "SINGLE") {
+          this.checkboxes.push(new FormControl(preSelectedIds[0]));
+        } else {
           rows
             .map(({ id }: GridRow<T>): T => id)
             .forEach(
@@ -162,10 +155,13 @@ export class GridComponent<T> implements OnDestroy, OnInit {
                   new FormControl(preSelectedIds.includes(id))
                 )
             );
-
-          this.checkboxesReady = true;
         }
-      );
+
+        this.checkboxesReady = true;
+
+        // TODO do we need to emit the new selections when to data changes?
+      }
+    );
 
     this.columns = sharedData.pipe(
       map(
@@ -200,8 +196,24 @@ export class GridComponent<T> implements OnDestroy, OnInit {
     );
   }
 
+  public allSelected(): boolean {
+    return !this.checkboxes.getRawValue().includes(false);
+  }
+
   public pageUpdated(update: PageUpdate): void {
     this.pageUpdate.next(update);
+  }
+
+  public selectAll(e: Event): void {
+    const target: HTMLInputElement = e.target as HTMLInputElement;
+    const values: boolean[] = this.checkboxes.value;
+
+    values.fill(target.checked);
+
+    this.checkboxes.setValue(values);
+
+    // for some reason the ui won't update, even though it's bound to allSelected already
+    target.checked = this.allSelected();
   }
 
   private buildColumnKeys(rows: any[], prependIndex: boolean): string[] {

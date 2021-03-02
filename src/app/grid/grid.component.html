@@ -2,20 +2,21 @@
 <ng-container *ngTemplateOutlet="pagination; context:{ items: data | async }"></ng-container>
 
 <ng-template #grid let-keys="keys" let-rows="rows">
-	<form [ngStyle]="{ 'min-height': itemsPerPage * 25 + 'px' }" [formGroup]="rowSelectForm">
+	<form [ngStyle]="{ 'min-height': (itemsPerPage + (showHeader || selectMode !== 'NONE' ? 1 : 0)) * 25 + 'px' }"
+		[formGroup]="rowSelectForm">
 		<table formArrayName="checkboxes">
-			<tr *ngIf="showHeader">
+			<tr *ngIf="showHeader || selectMode !== 'NONE'">
 				<th *ngIf="selectMode !== 'NONE'" class="narrow">
-					<input *ngIf="selectMode === 'MULTI'" type="checkbox" [formControlName]="0">
-					<input *ngIf="selectMode === 'SINGLE'" type="radio" [formControlName]="0" [value]="undefined">
+					<input *ngIf="selectMode === 'MULTI' && checkboxesReady" type="checkbox" (change)="selectAll($event)" [ngModel]="allSelected()" [ngModelOptions]="{standalone: true}">
+					<input *ngIf="selectMode === 'SINGLE' && checkboxesReady" type="radio" [formControlName]="0" [value]="undefined">
         </th>
 				<th *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">
-					{{ key }}
+					<span *ngIf="showHeader">{{ key }}</span>
 				</th>
 			</tr>
 			<tr *ngFor="let row of rows; index as i">
 				<td *ngIf="selectMode !== 'NONE'" class="narrow">
-					<input *ngIf="selectMode === 'MULTI'" [id]="i" type="checkbox"  [formControlName]="(currentPage - 1) * pageSize + i + 1">
+					<input *ngIf="selectMode === 'MULTI'" [id]="i" type="checkbox"  [formControlName]="(currentPage - 1) * pageSize + i">
 					<input *ngIf="selectMode === 'SINGLE'" [id]="i" type="radio"  [formControlName]="0" [value]="row.id">
         </td>
 				<td *ngFor="let key of keys; index as i" [ngClass]="{ 'narrow': showNumber && i === 0 }">

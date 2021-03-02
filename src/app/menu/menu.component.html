@@ -1,3 +1,6 @@
 <h1>Recipes</h1>
-<grid [data]="data" [showNumber]="true" [showPager]="true" [showHeader]="true" selectMode="MULTI"
+<!-- TODO how to search? -->
+<grid [data]="data" [showNumber]="true" [showPager]="true" [showHeader]="false" selectMode="MULTI"
 	(selections)="onSelect($event)"></grid>
+<!-- <grid [data]="data" [showNumber]="true" [showPager]="true" [showHeader]="false" selectMode="SINGLE"
+	(selections)="onSelect($event)"></grid> -->
