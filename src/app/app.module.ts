@@ -11,6 +11,7 @@ import { RecipeService } from "./recipe.service";
 import { PagerComponent } from "./pager/pager.component";
 import { InMemoryDataService } from "./in-memory-data.service";
 import { HttpClientModule } from "@angular/common/http";
+import { DetailComponent } from "./detail/detail.component";
 
 @NgModule({
   imports: [
@@ -22,7 +23,7 @@ import { HttpClientModule } from "@angular/common/http";
     HttpClientModule,
     ReactiveFormsModule
   ],
-  declarations: [AppComponent, GridComponent, MenuComponent, PagerComponent],
+  declarations: [AppComponent, DetailComponent, GridComponent, MenuComponent, PagerComponent],
   providers: [RecipeService],
   bootstrap: [AppComponent]
 })

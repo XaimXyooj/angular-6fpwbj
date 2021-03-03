@@ -12,7 +12,6 @@ import {
   distinctUntilChanged,
   filter,
   map,
-  pairwise,
   shareReplay,
   skip,
   startWith,
