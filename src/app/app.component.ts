@@ -23,8 +23,14 @@ export class AppComponent {
   }
 
   public onSelect(ids: number[]): void {
-    // TODO retain selection order
-    this.selectedIds = ids;
+    this.selectedIds = Array.from(
+      new Set([
+        ...this.selectedIds.filter((id: number): boolean => ids.includes(id)),
+        ...ids
+      ])
+    );
+
+    this.index = Math.min(this.index, this.selectedIds.length - 1);
   }
 
   public prev(): void {
