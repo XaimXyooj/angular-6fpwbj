@@ -6,7 +6,7 @@ import { RecipeService } from "../recipe.service";
 @Component({
   selector: "detail",
   templateUrl: "./detail.component.html",
-  styleUrls: []
+  styleUrls: ["./detail.component.css"]
 })
 export class DetailComponent {
   public recipe: Observable<Recipe>;

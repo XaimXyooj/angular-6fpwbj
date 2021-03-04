@@ -1,4 +1,9 @@
 <h2>
 	{{ (recipe | async)?.name }}
 </h2>
+<div>
+  source:
+  <a *ngIf="(recipe | async)?.source?.url" [href]="(recipe | async)?.source?.url">{{ (recipe | async)?.source?.display }}</a>
+  <span *ngIf="!(recipe | async)?.source?.url">{{ (recipe | async)?.source?.display }}</span>
+</div>
 <!-- TODO -->

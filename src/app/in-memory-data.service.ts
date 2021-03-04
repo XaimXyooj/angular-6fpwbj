@@ -5,18 +5,38 @@ import { MinimalRecipe, Recipe } from "./models/recipe";
 @Injectable()
 export class InMemoryDataService implements InMemoryDbService {
   createDb() {
-    const recipes = [
-      { id: 11, name: "Dr Nice", notes: "Hello" },
-      { id: 12, name: "Narco", notes: "World" },
+    const recipes: Recipe[] = [
+      {
+        id: 11,
+        name: "Dr Nice",
+        source: { display: "Google", url: "http://www.google.com" },
+        notes: "Hello"
+      },
+      {
+        id: 12,
+        name: "Narco",
+        source: { display: "Somewhere" },
+        notes: "World"
+      },
       { id: 13, name: "Bombasto", notes: "Foo" },
       { id: 14, name: "Celeritas", notes: "Bar" },
       { id: 15, name: "Magneta", notes: "Bye" },
-      { id: 16, name: "RubberMan", notes: "Buddy" },
-      { id: 17, name: "Dynama", notes: "Good" },
+      {
+        id: 16,
+        name: "RubberMan",
+        source: { display: "Facebook", url: "http://www.facebook.com" },
+        notes: "Buddy"
+      },
+      { id: 17, name: "Dynama", source: { display: "nowhere" }, notes: "Good" },
       { id: 18, name: "Dr IQ", notes: "Night" },
       { id: 19, name: "Magma", notes: "Seeya" },
       { id: 20, name: "Tornado", notes: "Tomorrow" },
-      { id: 21, name: "Sai", notes: "Xiong" }
+      {
+        id: 21,
+        name: "Sai",
+        source: { display: "Reddit", url: "http://www.reddit.com" },
+        notes: "Xiong"
+      }
     ];
 
     return {
