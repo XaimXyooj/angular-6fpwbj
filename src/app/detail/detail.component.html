@@ -1,9 +1,15 @@
 <h2>
-	{{ (recipe | async)?.name }}
+	{{ name }}
 </h2>
 <div>
   source:
-  <a *ngIf="(recipe | async)?.source?.url" [href]="(recipe | async)?.source?.url">{{ (recipe | async)?.source?.display }}</a>
-  <span *ngIf="!(recipe | async)?.source?.url">{{ (recipe | async)?.source?.display }}</span>
+  <a *ngIf="sourceUrl" [href]="sourceUrl">{{ sourceText }}</a>
+  <span *ngIf="!sourceUrl">{{ sourceText }}</span>
+</div>
+<div>
+  <h4>
+    Ingredients
+  </h4>
+  <grid [data]="ingredients"></grid>
 </div>
 <!-- TODO -->

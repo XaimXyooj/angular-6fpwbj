@@ -1,6 +1,6 @@
-import { Component, EventEmitter,  Input, OnInit, Output } from "@angular/core";
-import { BehaviorSubject, merge, Observable } from "rxjs";
-import { filter, map } from "rxjs/operators";
+import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 import { GridRow } from "../models/grid-row";
 import { List } from "../models/list";
 import { MinimalRecipe } from "../models/recipe";

@@ -10,15 +10,57 @@ export class InMemoryDataService implements InMemoryDbService {
         id: 11,
         name: "Dr Nice",
         source: { display: "Google", url: "http://www.google.com" },
+        ingredients: [
+          {
+            name: 'ramen',
+            amount: {
+              quantity: 1,
+              unit: 'package'
+            }
+          }
+        ],
         notes: "Hello"
       },
       {
         id: 12,
         name: "Narco",
         source: { display: "Somewhere" },
+        ingredients: [
+          {
+            name: 'rice',
+            amount: {
+              quantity: 2,
+              unit: 'cup'
+            }
+          },
+          {
+            name: 'water',
+            amount: {
+              quantity: 1.5,
+              unit: 'cup'
+            }
+          }
+        ],
         notes: "World"
       },
-      { id: 13, name: "Bombasto", notes: "Foo" },
+      { id: 13, name: "Bombasto",
+        ingredients: [
+          {
+            name: 'onion',
+            amount: {
+              quantity: 1
+            },
+            prep: 'chopped'
+          },
+          {
+            name: 'garlic',
+            amount: {
+              quantity: 3,
+              unit: 'clove'
+            },
+            prep: 'minced'
+          }
+        ], notes: "Foo" },
       { id: 14, name: "Celeritas", notes: "Bar" },
       { id: 15, name: "Magneta", notes: "Bye" },
       {
